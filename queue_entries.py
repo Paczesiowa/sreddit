@@ -1,6 +1,6 @@
 #!/usr/bin/env python
+import pickle
 import sys
-import yaml
 
 import beanstalkc
 
@@ -28,7 +28,7 @@ def main():
             entries = feed_parser.parse_entries(feed)
             print 'Found ' + str(len(entries)) + ' new entries'
             for entry in entries:
-                beanstalk.put(yaml.dump(entry))
+                beanstalk.put(pickle.dumps(entry))
 
 if __name__ == '__main__':
     main()
