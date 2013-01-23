@@ -9,20 +9,25 @@ import cached_feedparser
 from cached_feedparser.pickle_history import PickleHistory
 
 
-def _make_rss_item(title='title', link='link',
-                   description='description', pubDate=None):
+def make_rss_item(title='title', link='link',
+                  description='description', pubDate=None):
     if pubDate is None:
         pubDate = datetime.now()
     return RSSItem(title=title, link=link, description=description,
                    guid=Guid(link), pubDate=pubDate)
 
 
-def _make_rss_feed(feed_file_path, items, title='title', link='link',
-                   description='description', lastBuildDate=None):
+def make_rss_feed(items, title='title', link='link',
+                  description='description', lastBuildDate=None):
     if lastBuildDate is None:
         lastBuildDate = datetime.now()
     feed = RSS2(title='title', link='link', description='description',
                 lastBuildDate=lastBuildDate, items=items)
+    return feed
+
+
+def _make_rss_feed_in_file(feed_file_path, *args, **kwargs):
+    feed = make_rss_feed(*args, **kwargs)
     feed_file = open(feed_file_path, 'w')
     try:
         feed.write_xml(feed_file)
@@ -154,12 +159,12 @@ class CachedFeedParserTest(unittest.TestCase):
 
     def test_basic_parsing(self):
         pubDate1 = datetime(2012, 1, 10)
-        item1 = _make_rss_item(title='title1', link='link1',
-                               pubDate=pubDate1)
+        item1 = make_rss_item(title='title1', link='link1',
+                              pubDate=pubDate1)
         pubDate2 = datetime(2012, 1, 12)
-        item2 = _make_rss_item(title='title2', link='link2',
-                               pubDate=pubDate2)
-        _make_rss_feed(self._feed_file, [item1, item2])
+        item2 = make_rss_item(title='title2', link='link2',
+                              pubDate=pubDate2)
+        _make_rss_feed_in_file(self._feed_file, [item1, item2])
 
         parser = cached_feedparser.CachedFeedParser(self._get_history())
         entries = parser.parse_entries(self._feed_file)
@@ -176,23 +181,23 @@ class CachedFeedParserTest(unittest.TestCase):
 
     def test_not_returning_old_entries_same_instance(self):
         pubDate1 = datetime(2012, 1, 10)
-        item1 = _make_rss_item(title='title1', link='link1',
-                               pubDate=pubDate1)
+        item1 = make_rss_item(title='title1', link='link1',
+                              pubDate=pubDate1)
         pubDate2 = datetime(2012, 1, 11)
-        item2 = _make_rss_item(title='title2', link='link2',
-                               pubDate=pubDate2)
+        item2 = make_rss_item(title='title2', link='link2',
+                              pubDate=pubDate2)
         pubDate3 = datetime(2012, 1, 12)
-        item3 = _make_rss_item(title='title3', link='link3',
-                               pubDate=pubDate3)
+        item3 = make_rss_item(title='title3', link='link3',
+                              pubDate=pubDate3)
 
-        _make_rss_feed(self._feed_file, [item1, item2])
+        _make_rss_feed_in_file(self._feed_file, [item1, item2])
 
         parser = cached_feedparser.CachedFeedParser(self._get_history())
 
         entries = parser.parse_entries(self._feed_file)
         self.assertEqual(len(entries), 2)
 
-        _make_rss_feed(self._feed_file, [item1, item2, item3])
+        _make_rss_feed_in_file(self._feed_file, [item1, item2, item3])
         entries = parser.parse_entries(self._feed_file)
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0].id, 'link3')
@@ -202,23 +207,23 @@ class CachedFeedParserTest(unittest.TestCase):
 
     def test_not_returning_old_entries_new_instance(self):
         pubDate1 = datetime(2012, 1, 10)
-        item1 = _make_rss_item(title='title1', link='link1',
-                               pubDate=pubDate1)
+        item1 = make_rss_item(title='title1', link='link1',
+                              pubDate=pubDate1)
         pubDate2 = datetime(2012, 1, 11)
-        item2 = _make_rss_item(title='title2', link='link2',
-                               pubDate=pubDate2)
+        item2 = make_rss_item(title='title2', link='link2',
+                              pubDate=pubDate2)
         pubDate3 = datetime(2012, 1, 12)
-        item3 = _make_rss_item(title='title3', link='link3',
-                               pubDate=pubDate3)
+        item3 = make_rss_item(title='title3', link='link3',
+                              pubDate=pubDate3)
 
-        _make_rss_feed(self._feed_file, [item1, item2])
+        _make_rss_feed_in_file(self._feed_file, [item1, item2])
 
         parser = cached_feedparser.CachedFeedParser(self._get_history())
 
         entries = parser.parse_entries(self._feed_file)
         self.assertEqual(len(entries), 2)
 
-        _make_rss_feed(self._feed_file, [item1, item2, item3])
+        _make_rss_feed_in_file(self._feed_file, [item1, item2, item3])
 
         parser = cached_feedparser.CachedFeedParser(self._get_history())
 
